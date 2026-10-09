@@ -6,7 +6,7 @@
     <artifactId>appium-java-cucumber-framework</artifactId>
     <version>1.0.0</version>
     <name>Appium + Cucumber Automation Framework (Java)</name>
-    <description>Native Android and iOS test automation with Appium, Cucumber and JUnit</description>
+    <description>Native Android and iOS test automation with Appium, Cucumber and JUnit (Screen Object Model, dual runners)</description>
     <url>https://github.com/luismtueme/appium-java-cucumber-framework</url>
 
     <licenses>
@@ -17,7 +17,7 @@
     </licenses>
 
     <properties>
-        <!-- Keep in step with the Dockerfile and the workflows (ConsistencyTest checks) -->
+        <!-- Keep in step with the workflows (ConsistencyTest checks) -->
         <java.version>21</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
