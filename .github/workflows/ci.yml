@@ -58,7 +58,7 @@ jobs:
     name: Android
     needs: check
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       CI: true
       TEST_ENV: ci
@@ -106,25 +106,30 @@ jobs:
           cat appium.log || true
           exit 1
 
+      # aosp_atd avoids the common API 30 "System UI isn't responding" ANR on google_apis images.
+      # Quarantine runs in the same emulator session to avoid a second cold boot.
       - name: Run Android suite (Cucumber + JUnit specs)
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
+          target: aosp_atd
           arch: x86_64
-          profile: pixel_6
+          profile: pixel_4
+          ram-size: 4096M
+          heap-size: 512M
           disable-animations: true
-          script: ./mvnw -B verify -DskipUnitTests=true
-
-      - name: Run quarantined scenarios (non-blocking)
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          arch: x86_64
-          profile: pixel_6
-          disable-animations: true
-          script: ./mvnw -B verify -Pquarantine
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            set -euo pipefail
+            for i in $(seq 1 60); do
+              if adb shell service check settings 2>/dev/null | grep -q "found"; then
+                echo "settings service ready"
+                break
+              fi
+              sleep 2
+            done
+            ./mvnw -B verify -DskipUnitTests=true
+            ./mvnw -B verify -Pquarantine || true
 
       - name: Upload Android artifacts
         if: ${{ !cancelled() }}

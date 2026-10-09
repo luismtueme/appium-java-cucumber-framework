@@ -3,6 +3,7 @@ package io.github.luismtueme.framework.screens;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.AppiumDriver;
 import java.time.Duration;
+import java.util.List;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -19,6 +20,12 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  */
 public abstract class BaseScreen {
 
+    private static final List<By> SYSTEM_ANR_DISMISS = List.of(
+            By.id("android:id/aerr_wait"),
+            By.id("android:id/aerr_close"),
+            AppiumBy.androidUIAutomator("new UiSelector().text(\"Wait\")"),
+            AppiumBy.androidUIAutomator("new UiSelector().text(\"Close app\")"));
+
     protected final AppiumDriver driver;
     protected final WebDriverWait wait;
 
@@ -31,11 +38,31 @@ public abstract class BaseScreen {
     protected abstract By readyIndicator();
 
     public void waitUntilLoaded() {
+        dismissSystemAnrIfPresent();
         visible(readyIndicator());
     }
 
+    /**
+     * CI emulators (especially API 30 google_apis) sometimes show "System UI isn't responding", which steals focus
+     * from the app under test. Tap Wait/Close when present so accessibility finds can proceed.
+     */
+    protected void dismissSystemAnrIfPresent() {
+        for (By locator : SYSTEM_ANR_DISMISS) {
+            List<WebElement> matches = driver.findElements(locator);
+            if (!matches.isEmpty()) {
+                matches.getFirst().click();
+                return;
+            }
+        }
+    }
+
     protected WebElement visible(By locator) {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        dismissSystemAnrIfPresent();
+        return wait.until(driver -> {
+            dismissSystemAnrIfPresent();
+            List<WebElement> found = driver.findElements(locator);
+            return found.stream().filter(WebElement::isDisplayed).findFirst().orElse(null);
+        });
     }
 
     protected void click(By locator) {
