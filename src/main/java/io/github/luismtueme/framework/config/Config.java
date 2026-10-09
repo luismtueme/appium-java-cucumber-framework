@@ -34,6 +34,8 @@ public record Config(
         Optional<String> iosBundleId,
         Optional<String> deviceName,
         Optional<String> platformVersion,
+        Optional<String> deviceUdid,
+        Optional<Path> appiumWdaPath,
         Duration waitTimeout,
         Credentials credentials,
         String apiBaseUrl,
@@ -132,6 +134,9 @@ public record Config(
         URI appiumServerUrl =
                 settings.url("APPIUM_SERVER_URL").map(URI::create).orElse(URI.create("http://127.0.0.1:4723"));
 
+        Optional<Path> appiumWdaPath =
+                settings.text("APPIUM_WDA_PATH").map(Path::of).filter(Files::isDirectory);
+
         return new Config(
                 platform,
                 settings.text("TEST_ENV").orElse("local"),
@@ -142,6 +147,8 @@ public record Config(
                 iosBundleId,
                 settings.text("DEVICE_NAME"),
                 settings.text("PLATFORM_VERSION"),
+                settings.text("DEVICE_UDID"),
+                appiumWdaPath,
                 Duration.ofMillis(settings.positiveInt("WAIT_TIMEOUT").orElse(15_000)),
                 resolvedCredentials,
                 settings.url("API_BASE_URL").orElse("https://jsonplaceholder.typicode.com"),

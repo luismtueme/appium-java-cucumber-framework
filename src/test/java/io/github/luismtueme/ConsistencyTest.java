@@ -66,6 +66,8 @@ class ConsistencyTest {
         String version = apk.group(1);
         assertThat(script).contains("VERSION=\"" + version + "\"");
         assertThat(script).contains("Android.SauceLabs.Mobile.Sample.app.${VERSION}.apk");
-        assertThat(defaults).contains("iOS.Simulator.SauceLabs.Mobile.Sample.app." + version);
+        assertThat(script).contains("iOS.Simulator.SauceLabs.Mobile.Sample.app.${VERSION}.app");
+        assertThat(defaults)
+                .contains("DEMO_IOS_APP=apps/iOS.Simulator.SauceLabs.Mobile.Sample.app." + version + ".app");
     }
 }

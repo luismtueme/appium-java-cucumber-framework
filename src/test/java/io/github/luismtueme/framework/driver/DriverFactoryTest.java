@@ -49,4 +49,21 @@ class DriverFactoryTest {
         assertThat(options.getDeviceName()).hasValue("iPhone 16");
         assertThat(options.getPlatformVersion()).hasValue("18.5");
     }
+
+    @Test
+    void iosOptionsPreferUdidAndPrebuiltWdaWhenProvided() throws Exception {
+        java.nio.file.Path wda = java.nio.file.Files.createTempDirectory("wda-runner");
+        try {
+            XCUITestOptions options = DriverFactory.iosOptions(config(Map.of(
+                    "PLATFORM", "ios",
+                    "DEVICE_UDID", "AAAA-BBBB",
+                    "APPIUM_WDA_PATH", wda.toString())));
+            assertThat(options.getUdid()).hasValue("AAAA-BBBB");
+            assertThat(options.getCapability("appium:prebuiltWDAPath"))
+                    .isEqualTo(wda.toAbsolutePath().normalize().toString());
+            assertThat(options.getCapability("appium:usePreinstalledWDA")).isEqualTo(true);
+        } finally {
+            java.nio.file.Files.deleteIfExists(wda);
+        }
+    }
 }
