@@ -85,6 +85,40 @@ public abstract class BaseScreen {
         return visible(locator).getText();
     }
 
+    /**
+     * Visible copy for a React Native container found by {@code testID}.
+     *
+     * <p>On Android, {@code testID} maps to {@code accessibilityLabel} / content-desc on a View; {@code getText()}
+     * on that View is often empty while a child {@code TextView} holds the painted message. On iOS, prefer
+     * {@code label}, then {@code getText()}. Never treat {@code ignoreTestId} itself as the message.
+     */
+    protected String visibleText(By locator, String ignoreTestId) {
+        WebElement el = visible(locator);
+        String label = el.getAttribute("label");
+        if (usableText(label, ignoreTestId)) {
+            return label.trim();
+        }
+        String text = el.getText();
+        if (usableText(text, ignoreTestId)) {
+            return text.trim();
+        }
+        for (WebElement child : el.findElements(By.xpath(".//*"))) {
+            String childText = child.getText();
+            if (usableText(childText, ignoreTestId)) {
+                return childText.trim();
+            }
+        }
+        String contentDesc = el.getAttribute("contentDescription");
+        if (usableText(contentDesc, ignoreTestId)) {
+            return contentDesc.trim();
+        }
+        return text == null ? "" : text;
+    }
+
+    private static boolean usableText(String value, String ignoreTestId) {
+        return value != null && !value.isBlank() && !ignoreTestId.equals(value);
+    }
+
     protected boolean isShown(By locator) {
         return !driver.findElements(locator).isEmpty()
                 && driver.findElements(locator).stream().anyMatch(WebElement::isDisplayed);

@@ -11,6 +11,7 @@ public class LoginScreen extends BaseScreen {
     private static final By PASSWORD = accessId("test-Password");
     private static final By LOGIN = accessId("test-LOGIN");
     private static final By ERROR = accessId("test-Error message");
+    private static final String ERROR_TEST_ID = "test-Error message";
 
     public LoginScreen(AppiumDriver driver, Duration timeout) {
         super(driver, timeout);
@@ -28,9 +29,14 @@ public class LoginScreen extends BaseScreen {
         click(LOGIN);
     }
 
-    /** Visible error text after a failed login attempt. */
+    /**
+     * Visible error text after a failed login attempt.
+     *
+     * <p>The Sauce sample app puts {@code testID} on the error View; the message string lives on a child Text
+     * (see {@link BaseScreen#visibleText}).
+     */
     public String errorText() {
-        return textOf(ERROR);
+        return visibleText(ERROR, ERROR_TEST_ID);
     }
 
     public boolean isDisplayed() {
