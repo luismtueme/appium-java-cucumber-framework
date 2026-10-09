@@ -18,8 +18,8 @@ class DriverFactoryTest {
         all.put("DEMO_ANDROID_PACKAGE", "com.swaglabsmobileapp");
         all.put("DEMO_ANDROID_ACTIVITY", "com.swaglabsmobileapp.MainActivity");
         all.put("DEMO_IOS_BUNDLE_ID", "com.saucelabs.SwagLabsMobileApp");
-        all.put("DEMO_USERNAME", "bob@example.com");
-        all.put("DEMO_PASSWORD", "10203040");
+        all.put("DEMO_USERNAME", "standard_user");
+        all.put("DEMO_PASSWORD", "secret_sauce");
         all.put("API_BASE_URL", "https://jsonplaceholder.typicode.com");
         all.put("APPIUM_SERVER_URL", "http://127.0.0.1:4723");
         all.putAll(overrides);

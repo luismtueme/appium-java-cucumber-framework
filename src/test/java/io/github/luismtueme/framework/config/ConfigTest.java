@@ -18,8 +18,8 @@ class ConfigTest {
         all.put("DEMO_ANDROID_PACKAGE", "com.example.app");
         all.put("DEMO_ANDROID_ACTIVITY", "com.example.app.Main");
         all.put("DEMO_IOS_BUNDLE_ID", "com.example.app");
-        all.put("DEMO_USERNAME", "bob@example.com");
-        all.put("DEMO_PASSWORD", "10203040");
+        all.put("DEMO_USERNAME", "standard_user");
+        all.put("DEMO_PASSWORD", "secret_sauce");
         all.put("API_BASE_URL", "https://jsonplaceholder.typicode.com");
         all.put("APPIUM_SERVER_URL", "http://127.0.0.1:4723");
         all.putAll(values);
@@ -32,7 +32,7 @@ class ConfigTest {
         assertThat(config.platform()).isEqualTo(Platform.ANDROID);
         assertThat(config.usesDemoApp()).isTrue();
         assertThat(config.appPath()).isEqualTo(Path.of("apps/demo.apk"));
-        assertThat(config.credentials().username()).isEqualTo("bob@example.com");
+        assertThat(config.credentials().username()).isEqualTo("standard_user");
     }
 
     @Test

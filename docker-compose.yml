@@ -4,7 +4,7 @@
 #   APPIUM_SERVER_URL=http://127.0.0.1:4723 PLATFORM=android ./mvnw verify -DskipUnitTests=true
 services:
   appium:
-    image: appium/appium:v2.12.1-p2
+    image: appium/appium:v2.19.0-p4
     container_name: appium-java-framework
     ports:
       - "4723:4723"
