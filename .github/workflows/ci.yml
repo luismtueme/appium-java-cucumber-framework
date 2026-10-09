@@ -174,7 +174,7 @@ jobs:
 
       - name: Prepare iOS simulator
         id: simulator
-        uses: futureware-tech/simulator-action@v4
+        uses: futureware-tech/simulator-action@v6
         with:
           model: ${{ env.DEVICE_NAME }}
           os_version: ${{ env.PLATFORM_VERSION }}
