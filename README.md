@@ -73,7 +73,7 @@ On Windows, use `mvnw.cmd` in Command Prompt or PowerShell.
    ANDROID_APP=/absolute/path/to/your.apk
    ANDROID_APP_PACKAGE=com.your.app
    ANDROID_APP_ACTIVITY=.SplashActivity
-   ANDROID_APP_WAIT_ACTIVITY=.SplashActivity,.MainActivity
+   ANDROID_APP_WAIT_ACTIVITY=.MainActivity
    APP_USERNAME=your-test-user
    APP_PASSWORD=your-test-password
    ```

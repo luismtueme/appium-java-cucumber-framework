@@ -65,6 +65,8 @@ jobs:
       PLATFORM: android
       APPIUM_SERVER_URL: http://127.0.0.1:4723
       DEVICE_NAME: Android Emulator
+      # Emulator + RN splash→login needs more than the local 15s default
+      WAIT_TIMEOUT: '45000'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

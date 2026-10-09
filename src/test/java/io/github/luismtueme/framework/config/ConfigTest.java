@@ -17,7 +17,7 @@ class ConfigTest {
         all.put("DEMO_IOS_APP", "apps/demo.app");
         all.put("DEMO_ANDROID_PACKAGE", "com.example.app");
         all.put("DEMO_ANDROID_ACTIVITY", "com.example.app.Splash");
-        all.put("DEMO_ANDROID_WAIT_ACTIVITY", "com.example.app.Splash,com.example.app.Main");
+        all.put("DEMO_ANDROID_WAIT_ACTIVITY", "com.example.app.Main");
         all.put("DEMO_IOS_BUNDLE_ID", "com.example.app");
         all.put("DEMO_USERNAME", "standard_user");
         all.put("DEMO_PASSWORD", "secret_sauce");
@@ -35,7 +35,7 @@ class ConfigTest {
         assertThat(config.appPath()).isEqualTo(Path.of("apps/demo.apk"));
         assertThat(config.credentials().username()).isEqualTo("standard_user");
         assertThat(config.androidAppActivity()).contains("com.example.app.Splash");
-        assertThat(config.androidAppWaitActivity()).contains("com.example.app.Splash,com.example.app.Main");
+        assertThat(config.androidAppWaitActivity()).contains("com.example.app.Main");
     }
 
     @Test

@@ -39,13 +39,19 @@ public final class DriverFactory {
                 .setAutomationName("UiAutomator2")
                 .setApp(config.appPath().toAbsolutePath().normalize().toString())
                 .setNoReset(false)
-                .setNewCommandTimeout(Duration.ofSeconds(120));
+                .setNewCommandTimeout(Duration.ofSeconds(120))
+                // CI emulators often need longer than the 20s defaults for adb / server install.
+                .setAdbExecTimeout(Duration.ofSeconds(120))
+                .setUiautomator2ServerInstallTimeout(Duration.ofSeconds(120))
+                .setUiautomator2ServerLaunchTimeout(Duration.ofSeconds(120))
+                .setAppWaitDuration(Duration.ofSeconds(60))
+                .setIgnoreHiddenApiPolicyError(true)
+                .setDisableWindowAnimation(true);
         config.deviceName().ifPresent(options::setDeviceName);
         config.platformVersion().ifPresent(options::setPlatformVersion);
         config.androidAppPackage().ifPresent(options::setAppPackage);
         config.androidAppActivity().ifPresent(options::setAppActivity);
-        // When the launcher (e.g. SplashActivity) differs from the first focused activity after
-        // transition, Appium requires appWaitActivity — see activity-startup troubleshooting.
+        // Wait for the post-splash activity so the login UI exists before the first findElement.
         config.androidAppWaitActivity().ifPresent(options::setAppWaitActivity);
         if (config.deviceName().isEmpty()) {
             options.setDeviceName("Android Emulator");
