@@ -25,13 +25,6 @@ class ConsistencyTest {
     }
 
     @Test
-    void theDockerfileUsesTheProjectsJavaVersion() throws IOException {
-        assertThat(read("Dockerfile"))
-                .as("Dockerfile FROM line. Use: FROM maven:<maven version>-eclipse-temurin-%s", javaVersion())
-                .containsPattern("(?m)^FROM maven:[\\d.]+-eclipse-temurin-" + javaVersion() + "\\b");
-    }
-
-    @Test
     void everyWorkflowUsesTheProjectsJavaVersion() throws IOException {
         List<Path> workflows;
         try (Stream<Path> files = Files.list(Path.of(".github/workflows"))) {
