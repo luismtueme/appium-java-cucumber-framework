@@ -28,7 +28,7 @@
         <cucumber.version>7.22.2</cucumber.version>
         <junit.version>5.13.4</junit.version>
         <rest-assured.version>5.5.5</rest-assured.version>
-        <jackson.version>2.19.2</jackson.version>
+        <jackson.version>2.22.3</jackson.version>
         <assertj.version>3.27.3</assertj.version>
         <awaitility.version>4.3.0</awaitility.version>
         <archunit.version>1.4.1</archunit.version>
