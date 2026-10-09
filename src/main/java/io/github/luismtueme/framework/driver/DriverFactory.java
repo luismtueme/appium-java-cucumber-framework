@@ -39,11 +39,20 @@ public final class DriverFactory {
                 .setAutomationName("UiAutomator2")
                 .setApp(config.appPath().toAbsolutePath().normalize().toString())
                 .setNoReset(false)
-                .setNewCommandTimeout(Duration.ofSeconds(120));
+                .setNewCommandTimeout(Duration.ofSeconds(120))
+                // CI emulators often need longer than the 20s defaults for adb / server install.
+                .setAdbExecTimeout(Duration.ofSeconds(120))
+                .setUiautomator2ServerInstallTimeout(Duration.ofSeconds(120))
+                .setUiautomator2ServerLaunchTimeout(Duration.ofSeconds(120))
+                .setAppWaitDuration(Duration.ofSeconds(60))
+                .setIgnoreHiddenApiPolicyError(true)
+                .setDisableWindowAnimation(true);
         config.deviceName().ifPresent(options::setDeviceName);
         config.platformVersion().ifPresent(options::setPlatformVersion);
         config.androidAppPackage().ifPresent(options::setAppPackage);
         config.androidAppActivity().ifPresent(options::setAppActivity);
+        // Wait for the post-splash activity so the login UI exists before the first findElement.
+        config.androidAppWaitActivity().ifPresent(options::setAppWaitActivity);
         if (config.deviceName().isEmpty()) {
             options.setDeviceName("Android Emulator");
         }
@@ -56,13 +65,21 @@ public final class DriverFactory {
                 .setAutomationName("XCUITest")
                 .setApp(config.appPath().toAbsolutePath().normalize().toString())
                 .setNoReset(false)
-                .setNewCommandTimeout(Duration.ofSeconds(120));
+                .setNewCommandTimeout(Duration.ofSeconds(120))
+                .setWdaLaunchTimeout(Duration.ofMinutes(2));
         config.deviceName().ifPresent(options::setDeviceName);
         config.platformVersion().ifPresent(options::setPlatformVersion);
+        config.deviceUdid().ifPresent(options::setUdid);
         config.iosBundleId().ifPresent(options::setBundleId);
-        if (config.deviceName().isEmpty()) {
+        if (config.deviceName().isEmpty() && config.deviceUdid().isEmpty()) {
             options.setDeviceName("iPhone 16");
         }
+        // Prefer a downloaded / prebuilt WebDriverAgent when CI (or a local cache) provides one.
+        config.appiumWdaPath().ifPresent(wda -> {
+            String absolute = wda.toAbsolutePath().normalize().toString();
+            options.setCapability("appium:prebuiltWDAPath", absolute);
+            options.setCapability("appium:usePreinstalledWDA", true);
+        });
         return options;
     }
 

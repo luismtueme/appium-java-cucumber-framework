@@ -47,6 +47,8 @@
         <coverage.minimum>0.75</coverage.minimum>
         <!-- Empty by default. -Pcheck / -Pquarantine / -Pcucumber-only set this to skip JUnit mobile specs. -->
         <failsafe.excludes/>
+        <!-- Quarantine writes elsewhere so it does not overwrite the main suite's Failsafe XML. -->
+        <failsafe.reportsDirectory>${project.build.directory}/failsafe-reports</failsafe.reportsDirectory>
     </properties>
 
     <dependencyManagement>
@@ -169,12 +171,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.5.3</version>
+                    <version>3.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.5.3</version>
+                    <version>3.6.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -274,6 +276,7 @@
                         <include>**/specs/**/*IT.java</include>
                     </includes>
                     <excludes>${failsafe.excludes}</excludes>
+                    <reportsDirectory>${failsafe.reportsDirectory}</reportsDirectory>
                     <rerunFailingTestsCount>${retries}</rerunFailingTestsCount>
                     <systemPropertyVariables>
                         <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
@@ -382,6 +385,7 @@
                 <skipUnitTests>true</skipUnitTests>
                 <jacoco.skip>true</jacoco.skip>
                 <failsafe.excludes>**/specs/**</failsafe.excludes>
+                <failsafe.reportsDirectory>${project.build.directory}/failsafe-reports-quarantine</failsafe.reportsDirectory>
             </properties>
         </profile>
 

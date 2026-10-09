@@ -58,13 +58,15 @@ jobs:
     name: Android
     needs: check
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       CI: true
       TEST_ENV: ci
       PLATFORM: android
       APPIUM_SERVER_URL: http://127.0.0.1:4723
       DEVICE_NAME: Android Emulator
+      # Emulator + RN splash→login needs more than the local 15s default
+      WAIT_TIMEOUT: '45000'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -104,25 +106,21 @@ jobs:
           cat appium.log || true
           exit 1
 
+      # aosp_atd avoids the common API 30 "System UI isn't responding" ANR on google_apis images.
+      # Quarantine runs in the same emulator session to avoid a second cold boot.
       - name: Run Android suite (Cucumber + JUnit specs)
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
+          target: aosp_atd
           arch: x86_64
-          profile: pixel_6
+          profile: pixel_4
+          ram-size: 4096M
+          heap-size: 512M
           disable-animations: true
-          script: ./mvnw -B verify -DskipUnitTests=true
-
-      - name: Run quarantined scenarios (non-blocking)
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          arch: x86_64
-          profile: pixel_6
-          disable-animations: true
-          script: ./mvnw -B verify -Pquarantine
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          # One argv only: the action runs `sh -c <script>`, so multiline YAML is split per line.
+          script: bash scripts/ci-android.sh
 
       - name: Upload Android artifacts
         if: ${{ !cancelled() }}
@@ -149,7 +147,6 @@ jobs:
       APPIUM_SERVER_URL: http://127.0.0.1:4723
       DEVICE_NAME: iPhone 16
       PLATFORM_VERSION: '18.5'
-      PREBUILT_WDA_PATH: ${{ github.workspace }}/wda/WebDriverAgentRunner-Runner.app
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -176,6 +173,7 @@ jobs:
         run: bash scripts/download-apps.sh
 
       - name: Prepare iOS simulator
+        id: simulator
         uses: futureware-tech/simulator-action@v4
         with:
           model: ${{ env.DEVICE_NAME }}
@@ -184,8 +182,19 @@ jobs:
 
       - name: Download prebuilt WebDriverAgent
         run: |
-          mkdir -p "$(dirname "$PREBUILT_WDA_PATH")"
-          appium driver run xcuitest download-wda-sim --platform=ios --outdir="$(dirname "$PREBUILT_WDA_PATH")" || true
+          mkdir -p wda
+          if appium driver run xcuitest download-wda-sim --platform=ios --outdir=wda; then
+            WDA="$(find wda -type d -name 'WebDriverAgentRunner-Runner.app' | head -n 1)"
+            if [[ -n "$WDA" ]]; then
+              echo "APPIUM_WDA_PATH=$WDA" >> "$GITHUB_ENV"
+              echo "Using prebuilt WDA at $WDA"
+            else
+              echo "download-wda-sim finished but no Runner.app was found; Appium will build WDA"
+              find wda -maxdepth 3 || true
+            fi
+          else
+            echo "Prebuilt WDA download unavailable; Appium will build WDA via xcodebuild"
+          fi
 
       - name: Start Appium server
         run: |
@@ -204,8 +213,7 @@ jobs:
       - name: Run iOS suite (Cucumber + JUnit specs)
         run: ./mvnw -B verify -DskipUnitTests=true
         env:
-          # Prefer prebuilt WDA when the download succeeded
-          APPIUM_WDA_PATH: ${{ env.PREBUILT_WDA_PATH }}
+          DEVICE_UDID: ${{ steps.simulator.outputs.udid }}
 
       - name: Upload iOS artifacts
         if: ${{ !cancelled() }}

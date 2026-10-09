@@ -75,10 +75,10 @@ Mirror the same flow as a method in `specs/` if you want both styles.
 
 | Symptom | Fix |
 |---|---|
-| `App binary not found` | `bash scripts/download-apps.sh` |
+| `App binary not found` | `bash scripts/download-apps.sh` (iOS lands at `apps/iOS.Simulator.SauceLabs.Mobile.Sample.app.2.7.1.app`) |
 | Connection refused to `:4723` | Start Appium; check `APPIUM_SERVER_URL` |
 | Session not created (Android) | Emulator booted? `adb devices` shows a device? UiAutomator2 installed? |
-| Session not created (iOS) | Simulator booted? XCUITest driver installed? Correct `.app` path under `apps/`? |
+| Session not created (iOS) | Simulator booted? XCUITest installed? `DEMO_IOS_APP` points at the `.app` bundle (not an IPA `Payload/` tree)? |
 | Spotless failed | `./mvnw spotless:apply` |
 | ArchUnit / Gherkin lint failed | Read the rule message; fix the design or tag before merging |
 

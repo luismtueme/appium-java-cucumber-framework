@@ -19,15 +19,17 @@ class LoginSpecIT extends MobileSession {
         Credentials credentials = config.requireCredentials();
         loginScreen.login(credentials.username(), credentials.password());
 
+        // Presence of test-PRODUCTS / test-Cart is cross-platform; getText() on the RN container is not
+        // reliable on XCUITest (name/label vs aggregated child text).
         Eventually.assertThat(() -> assertThat(catalogScreen.isDisplayed()).isTrue());
-        assertThat(catalogScreen.productsHeading()).containsIgnoringCase("PRODUCTS");
+        assertThat(catalogScreen.cartIsShown()).isTrue();
     }
 
     @Test
     @Tag("Regression")
     @DisplayName("shows an error for a locked-out user")
     void showsErrorForLockedOutUser() {
-        loginScreen.login("alice@example.com", "10203040");
+        loginScreen.login("locked_out_user", "secret_sauce");
 
         Eventually.assertThat(() -> assertThat(loginScreen.errorText()).containsIgnoringCase("locked out"));
     }

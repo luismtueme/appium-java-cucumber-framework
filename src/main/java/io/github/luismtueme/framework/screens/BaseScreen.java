@@ -2,7 +2,9 @@ package io.github.luismtueme.framework.screens;
 
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.AppiumDriver;
+import io.appium.java_client.android.AndroidDriver;
 import java.time.Duration;
+import java.util.List;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -19,6 +21,12 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  */
 public abstract class BaseScreen {
 
+    private static final List<By> SYSTEM_ANR_DISMISS = List.of(
+            By.id("android:id/aerr_wait"),
+            By.id("android:id/aerr_close"),
+            AppiumBy.androidUIAutomator("new UiSelector().text(\"Wait\")"),
+            AppiumBy.androidUIAutomator("new UiSelector().text(\"Close app\")"));
+
     protected final AppiumDriver driver;
     protected final WebDriverWait wait;
 
@@ -31,11 +39,35 @@ public abstract class BaseScreen {
     protected abstract By readyIndicator();
 
     public void waitUntilLoaded() {
+        dismissSystemAnrIfPresent();
         visible(readyIndicator());
     }
 
+    /**
+     * CI emulators (especially API 30 google_apis) sometimes show "System UI isn't responding", which steals focus
+     * from the app under test. Tap Wait/Close when present so accessibility finds can proceed. Android-only — iOS
+     * rejects {@code -android uiautomator} selectors.
+     */
+    protected void dismissSystemAnrIfPresent() {
+        if (!(driver instanceof AndroidDriver)) {
+            return;
+        }
+        for (By locator : SYSTEM_ANR_DISMISS) {
+            List<WebElement> matches = driver.findElements(locator);
+            if (!matches.isEmpty()) {
+                matches.getFirst().click();
+                return;
+            }
+        }
+    }
+
     protected WebElement visible(By locator) {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        dismissSystemAnrIfPresent();
+        return wait.until(driver -> {
+            dismissSystemAnrIfPresent();
+            List<WebElement> found = driver.findElements(locator);
+            return found.stream().filter(WebElement::isDisplayed).findFirst().orElse(null);
+        });
     }
 
     protected void click(By locator) {
@@ -51,6 +83,53 @@ public abstract class BaseScreen {
     /** Current text of an element, waiting until it is visible. */
     protected String textOf(By locator) {
         return visible(locator).getText();
+    }
+
+    /**
+     * Visible copy for a React Native container found by {@code testID}.
+     *
+     * <p>On Android, {@code testID} maps to {@code accessibilityLabel} / content-desc on a View; {@code getText()}
+     * on that View is often empty while a child {@code TextView} holds the painted message. On iOS, prefer
+     * {@code label}, then {@code getText()}. Never treat {@code ignoreTestId} itself as the message.
+     *
+     * <p>Do not call {@code getAttribute("label")} on UiAutomator2 — it throws {@code UnsupportedCommandException}
+     * because {@code label} is XCUITest-only.
+     */
+    protected String visibleText(By locator, String ignoreTestId) {
+        WebElement el = visible(locator);
+        String label = iosLabel(el);
+        if (usableText(label, ignoreTestId)) {
+            return label.trim();
+        }
+        String text = el.getText();
+        if (usableText(text, ignoreTestId)) {
+            return text.trim();
+        }
+        for (WebElement child : el.findElements(By.xpath(".//*"))) {
+            String childText = child.getText();
+            if (usableText(childText, ignoreTestId)) {
+                return childText.trim();
+            }
+        }
+        String contentDesc = el.getAttribute("contentDescription");
+        if (usableText(contentDesc, ignoreTestId)) {
+            return contentDesc.trim();
+        }
+        return text == null ? "" : text;
+    }
+
+    /**
+     * XCUITest {@code label} when available; {@code null} on Android (attribute is not supported there).
+     */
+    protected String iosLabel(WebElement el) {
+        if (driver instanceof AndroidDriver) {
+            return null;
+        }
+        return el.getAttribute("label");
+    }
+
+    private static boolean usableText(String value, String ignoreTestId) {
+        return value != null && !value.isBlank() && !ignoreTestId.equals(value);
     }
 
     protected boolean isShown(By locator) {

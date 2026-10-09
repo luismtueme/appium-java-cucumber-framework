@@ -11,6 +11,7 @@ mkdir -p "$APPS"
 
 ANDROID_APK="Android.SauceLabs.Mobile.Sample.app.${VERSION}.apk"
 IOS_ZIP="iOS.Simulator.SauceLabs.Mobile.Sample.app.${VERSION}.zip"
+IOS_APP="$APPS/iOS.Simulator.SauceLabs.Mobile.Sample.app.${VERSION}.app"
 
 if [[ ! -f "$APPS/$ANDROID_APK" ]]; then
   echo "Downloading Android demo app..."
@@ -19,16 +20,24 @@ else
   echo "Android demo app already present: apps/$ANDROID_APK"
 fi
 
-IOS_DIR="$APPS/iOS.Simulator.SauceLabs.Mobile.Sample.app.${VERSION}"
-if [[ ! -d "$IOS_DIR/Payload" ]]; then
+if [[ ! -d "$IOS_APP" ]]; then
   echo "Downloading iOS simulator demo app..."
   curl -fL --retry 3 --retry-delay 2 -o "$APPS/$IOS_ZIP" "$BASE/$IOS_ZIP"
-  rm -rf "$IOS_DIR"
-  mkdir -p "$IOS_DIR"
-  unzip -q "$APPS/$IOS_ZIP" -d "$IOS_DIR"
-  rm -f "$APPS/$IOS_ZIP"
+  EXTRACT="$APPS/_ios_extract"
+  rm -rf "$EXTRACT" "$IOS_APP"
+  mkdir -p "$EXTRACT"
+  unzip -q "$APPS/$IOS_ZIP" -d "$EXTRACT"
+  # Release zip ships the .app at the archive root (not an IPA Payload tree).
+  FOUND="$(find "$EXTRACT" -maxdepth 2 -type d -name '*.app' | head -n 1)"
+  if [[ -z "$FOUND" ]]; then
+    echo "ERROR: no .app bundle inside $IOS_ZIP" >&2
+    find "$EXTRACT" -maxdepth 3 >&2 || true
+    exit 1
+  fi
+  mv "$FOUND" "$IOS_APP"
+  rm -rf "$EXTRACT" "$APPS/$IOS_ZIP"
 else
-  echo "iOS demo app already present under apps/$(basename "$IOS_DIR")"
+  echo "iOS demo app already present: apps/$(basename "$IOS_APP")"
 fi
 
 echo "Demo apps ready under apps/"

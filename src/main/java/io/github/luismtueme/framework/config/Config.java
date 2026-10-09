@@ -31,9 +31,12 @@ public record Config(
         Path appPath,
         Optional<String> androidAppPackage,
         Optional<String> androidAppActivity,
+        Optional<String> androidAppWaitActivity,
         Optional<String> iosBundleId,
         Optional<String> deviceName,
         Optional<String> platformVersion,
+        Optional<String> deviceUdid,
+        Optional<Path> appiumWdaPath,
         Duration waitTimeout,
         Credentials credentials,
         String apiBaseUrl,
@@ -119,18 +122,24 @@ public record Config(
 
         Optional<String> androidPackage = settings.text("ANDROID_APP_PACKAGE");
         Optional<String> androidActivity = settings.text("ANDROID_APP_ACTIVITY");
+        Optional<String> androidWaitActivity = settings.text("ANDROID_APP_WAIT_ACTIVITY");
         Optional<String> iosBundleId = settings.text("IOS_BUNDLE_ID");
         if (usesDemoApp) {
             androidPackage = Optional.of(
                     settings.require("DEMO_ANDROID_PACKAGE", "demo Android package is missing from defaults"));
             androidActivity = Optional.of(
                     settings.require("DEMO_ANDROID_ACTIVITY", "demo Android activity is missing from defaults"));
+            androidWaitActivity = Optional.of(settings.require(
+                    "DEMO_ANDROID_WAIT_ACTIVITY", "demo Android wait activity is missing from defaults"));
             iosBundleId =
                     Optional.of(settings.require("DEMO_IOS_BUNDLE_ID", "demo iOS bundle id is missing from defaults"));
         }
 
         URI appiumServerUrl =
                 settings.url("APPIUM_SERVER_URL").map(URI::create).orElse(URI.create("http://127.0.0.1:4723"));
+
+        Optional<Path> appiumWdaPath =
+                settings.text("APPIUM_WDA_PATH").map(Path::of).filter(Files::isDirectory);
 
         return new Config(
                 platform,
@@ -139,9 +148,12 @@ public record Config(
                 appPath,
                 androidPackage,
                 androidActivity,
+                androidWaitActivity,
                 iosBundleId,
                 settings.text("DEVICE_NAME"),
                 settings.text("PLATFORM_VERSION"),
+                settings.text("DEVICE_UDID"),
+                appiumWdaPath,
                 Duration.ofMillis(settings.positiveInt("WAIT_TIMEOUT").orElse(15_000)),
                 resolvedCredentials,
                 settings.url("API_BASE_URL").orElse("https://jsonplaceholder.typicode.com"),
