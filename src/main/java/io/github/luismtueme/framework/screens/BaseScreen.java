@@ -91,10 +91,13 @@ public abstract class BaseScreen {
      * <p>On Android, {@code testID} maps to {@code accessibilityLabel} / content-desc on a View; {@code getText()}
      * on that View is often empty while a child {@code TextView} holds the painted message. On iOS, prefer
      * {@code label}, then {@code getText()}. Never treat {@code ignoreTestId} itself as the message.
+     *
+     * <p>Do not call {@code getAttribute("label")} on UiAutomator2 — it throws {@code UnsupportedCommandException}
+     * because {@code label} is XCUITest-only.
      */
     protected String visibleText(By locator, String ignoreTestId) {
         WebElement el = visible(locator);
-        String label = el.getAttribute("label");
+        String label = iosLabel(el);
         if (usableText(label, ignoreTestId)) {
             return label.trim();
         }
@@ -113,6 +116,16 @@ public abstract class BaseScreen {
             return contentDesc.trim();
         }
         return text == null ? "" : text;
+    }
+
+    /**
+     * XCUITest {@code label} when available; {@code null} on Android (attribute is not supported there).
+     */
+    protected String iosLabel(WebElement el) {
+        if (driver instanceof AndroidDriver) {
+            return null;
+        }
+        return el.getAttribute("label");
     }
 
     private static boolean usableText(String value, String ignoreTestId) {

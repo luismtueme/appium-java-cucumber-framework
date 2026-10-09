@@ -31,7 +31,7 @@ public class CatalogScreen extends BaseScreen {
      */
     public String productsHeading() {
         WebElement el = visible(PRODUCTS);
-        String label = el.getAttribute("label");
+        String label = iosLabel(el);
         if (label != null && !label.isBlank() && !PRODUCTS_TEST_ID.equals(label)) {
             return label;
         }
