@@ -1,6 +1,6 @@
 # Appium server image for local Android runs via docker compose.
 # The Java test suite still runs on the host (or in CI) and talks to this server.
-FROM maven:3.9.9-eclipse-temurin-21
+FROM maven:3.9-eclipse-temurin-26
 
 WORKDIR /workspace
 COPY . .
