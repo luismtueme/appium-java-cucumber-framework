@@ -119,8 +119,9 @@ jobs:
           heap-size: 512M
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          # Use bash: Ubuntu's /bin/sh (dash) rejects `set -o pipefail`.
           script: |
-            set -euo pipefail
+            bash -euo pipefail <<'SCRIPT'
             for i in $(seq 1 60); do
               if adb shell service check settings 2>/dev/null | grep -q "found"; then
                 echo "settings service ready"
@@ -130,6 +131,7 @@ jobs:
             done
             ./mvnw -B verify -DskipUnitTests=true
             ./mvnw -B verify -Pquarantine || true
+            SCRIPT
 
       - name: Upload Android artifacts
         if: ${{ !cancelled() }}

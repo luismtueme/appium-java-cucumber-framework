@@ -2,6 +2,7 @@ package io.github.luismtueme.framework.screens;
 
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.AppiumDriver;
+import io.appium.java_client.android.AndroidDriver;
 import java.time.Duration;
 import java.util.List;
 import org.openqa.selenium.By;
@@ -44,9 +45,13 @@ public abstract class BaseScreen {
 
     /**
      * CI emulators (especially API 30 google_apis) sometimes show "System UI isn't responding", which steals focus
-     * from the app under test. Tap Wait/Close when present so accessibility finds can proceed.
+     * from the app under test. Tap Wait/Close when present so accessibility finds can proceed. Android-only — iOS
+     * rejects {@code -android uiautomator} selectors.
      */
     protected void dismissSystemAnrIfPresent() {
+        if (!(driver instanceof AndroidDriver)) {
+            return;
+        }
         for (By locator : SYSTEM_ANR_DISMISS) {
             List<WebElement> matches = driver.findElements(locator);
             if (!matches.isEmpty()) {
