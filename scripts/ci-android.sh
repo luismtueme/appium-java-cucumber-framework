@@ -13,4 +13,6 @@ done
 
 ./mvnw -B verify -DskipUnitTests=true
 # Quarantine is non-blocking; keep the job green when only quarantine fails.
+# Reports go to target/failsafe-reports-quarantine (see pom quarantine profile) so they
+# do not overwrite the main suite's Failsafe XML uploaded as CI artifacts.
 ./mvnw -B verify -Pquarantine || true
