@@ -72,7 +72,8 @@ On Windows, use `mvnw.cmd` in Command Prompt or PowerShell.
    PLATFORM=android
    ANDROID_APP=/absolute/path/to/your.apk
    ANDROID_APP_PACKAGE=com.your.app
-   ANDROID_APP_ACTIVITY=.MainActivity
+   ANDROID_APP_ACTIVITY=.SplashActivity
+   ANDROID_APP_WAIT_ACTIVITY=.SplashActivity,.MainActivity
    APP_USERNAME=your-test-user
    APP_PASSWORD=your-test-password
    ```
@@ -89,7 +90,7 @@ Settings are read in this order, first match wins: **`-D` system properties**, *
 | `PLATFORM` | `android` | `android` or `ios` |
 | `APPIUM_SERVER_URL` | `http://127.0.0.1:4723` | Appium server |
 | `ANDROID_APP` / `IOS_APP` | empty (demo apps) | Path to your app binary |
-| `ANDROID_APP_PACKAGE` / `ANDROID_APP_ACTIVITY` | demo values | Android identity when using your app |
+| `ANDROID_APP_PACKAGE` / `ANDROID_APP_ACTIVITY` / `ANDROID_APP_WAIT_ACTIVITY` | demo values | Android identity / wait activities when using your app |
 | `IOS_BUNDLE_ID` | demo value | iOS identity when using your app |
 | `DEVICE_NAME` / `PLATFORM_VERSION` | sensible defaults | Emulator / simulator |
 | `APP_USERNAME` / `APP_PASSWORD` | demo credentials for the sample app only | Login |

@@ -19,8 +19,10 @@ class LoginSpecIT extends MobileSession {
         Credentials credentials = config.requireCredentials();
         loginScreen.login(credentials.username(), credentials.password());
 
+        // Presence of test-PRODUCTS / test-Cart is cross-platform; getText() on the RN container is not
+        // reliable on XCUITest (name/label vs aggregated child text).
         Eventually.assertThat(() -> assertThat(catalogScreen.isDisplayed()).isTrue());
-        assertThat(catalogScreen.productsHeading()).containsIgnoringCase("PRODUCTS");
+        assertThat(catalogScreen.cartIsShown()).isTrue();
     }
 
     @Test

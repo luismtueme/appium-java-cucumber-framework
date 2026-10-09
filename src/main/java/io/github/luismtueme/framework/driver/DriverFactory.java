@@ -44,6 +44,9 @@ public final class DriverFactory {
         config.platformVersion().ifPresent(options::setPlatformVersion);
         config.androidAppPackage().ifPresent(options::setAppPackage);
         config.androidAppActivity().ifPresent(options::setAppActivity);
+        // When the launcher (e.g. SplashActivity) differs from the first focused activity after
+        // transition, Appium requires appWaitActivity — see activity-startup troubleshooting.
+        config.androidAppWaitActivity().ifPresent(options::setAppWaitActivity);
         if (config.deviceName().isEmpty()) {
             options.setDeviceName("Android Emulator");
         }

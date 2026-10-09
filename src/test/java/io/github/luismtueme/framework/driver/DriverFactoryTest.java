@@ -16,7 +16,10 @@ class DriverFactoryTest {
         all.put("DEMO_ANDROID_APP", "apps/demo.apk");
         all.put("DEMO_IOS_APP", "apps/demo.app");
         all.put("DEMO_ANDROID_PACKAGE", "com.swaglabsmobileapp");
-        all.put("DEMO_ANDROID_ACTIVITY", "com.swaglabsmobileapp.MainActivity");
+        all.put("DEMO_ANDROID_ACTIVITY", "com.swaglabsmobileapp.SplashActivity");
+        all.put(
+                "DEMO_ANDROID_WAIT_ACTIVITY",
+                "com.swaglabsmobileapp.SplashActivity,com.swaglabsmobileapp.MainActivity");
         all.put("DEMO_IOS_BUNDLE_ID", "com.saucelabs.SwagLabsMobileApp");
         all.put("DEMO_USERNAME", "standard_user");
         all.put("DEMO_PASSWORD", "secret_sauce");
@@ -34,6 +37,9 @@ class DriverFactoryTest {
                 .hasValueSatisfying(name -> assertThat(name).hasToString("UiAutomator2"));
         assertThat(options.getApp()).hasValueSatisfying(app -> assertThat(app).endsWith("apps/demo.apk"));
         assertThat(options.getAppPackage()).hasValue("com.swaglabsmobileapp");
+        assertThat(options.getAppActivity()).hasValue("com.swaglabsmobileapp.SplashActivity");
+        assertThat(options.getAppWaitActivity())
+                .hasValue("com.swaglabsmobileapp.SplashActivity,com.swaglabsmobileapp.MainActivity");
     }
 
     @Test
