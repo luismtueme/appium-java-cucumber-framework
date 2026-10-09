@@ -1,0 +1,220 @@
+name: Appium Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Keep in step with <java.version> in pom.xml (ConsistencyTest checks)
+  JAVA_VERSION: '21'
+  DEMO_APP_VERSION: '2.7.1'
+
+jobs:
+  # Fast gate for every PR: formatting, compiler warnings-as-errors, framework unit tests with
+  # coverage, architecture rules, Gherkin lint, version consistency, and a Cucumber dry run
+  # (every step defined exactly once). No emulator, simulator or Appium server required.
+  check:
+    name: Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Build, Unit Tests and Lint
+        run: ./mvnw -B verify -DskipITs
+
+      - name: Validate Step Definitions (dry run)
+        run: ./mvnw -B verify -Pcheck
+
+      - name: Upload Coverage Report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage
+          path: target/site/jacoco/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  android:
+    name: Android
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: true
+      TEST_ENV: ci
+      PLATFORM: android
+      APPIUM_SERVER_URL: http://127.0.0.1:4723
+      DEVICE_NAME: Android Emulator
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Appium and UiAutomator2
+        run: |
+          npm install -g appium
+          appium driver install uiautomator2
+          appium -v
+
+      - name: Download demo apps
+        run: bash scripts/download-apps.sh
+
+      - name: Start Appium server
+        run: |
+          nohup appium --address 127.0.0.1 --port 4723 --log appium.log > /dev/null 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:4723/status >/dev/null; then
+              echo "Appium is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Appium failed to start"
+          cat appium.log || true
+          exit 1
+
+      - name: Run Android suite (Cucumber + JUnit specs)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: ./mvnw -B verify -DskipUnitTests=true
+
+      - name: Run quarantined scenarios (non-blocking)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: ./mvnw -B verify -Pquarantine
+
+      - name: Upload Android artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-artifacts
+          path: |
+            target/cucumber-report.html
+            target/cucumber-quarantine-report.html
+            target/failsafe-reports/
+            appium.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+  ios:
+    name: iOS
+    needs: check
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      CI: true
+      TEST_ENV: ci
+      PLATFORM: ios
+      APPIUM_SERVER_URL: http://127.0.0.1:4723
+      DEVICE_NAME: iPhone 16
+      PLATFORM_VERSION: '18.5'
+      PREBUILT_WDA_PATH: ${{ github.workspace }}/wda/WebDriverAgentRunner-Runner.app
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Appium and XCUITest
+        run: |
+          npm install -g appium
+          appium driver install xcuitest
+          appium -v
+
+      - name: Download demo apps
+        run: bash scripts/download-apps.sh
+
+      - name: Prepare iOS simulator
+        uses: futureware-tech/simulator-action@v4
+        with:
+          model: ${{ env.DEVICE_NAME }}
+          os_version: ${{ env.PLATFORM_VERSION }}
+          wait_for_boot: true
+
+      - name: Download prebuilt WebDriverAgent
+        run: |
+          mkdir -p "$(dirname "$PREBUILT_WDA_PATH")"
+          appium driver run xcuitest download-wda-sim --platform=ios --outdir="$(dirname "$PREBUILT_WDA_PATH")" || true
+
+      - name: Start Appium server
+        run: |
+          nohup appium --address 127.0.0.1 --port 4723 --log appium.log > /dev/null 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:4723/status >/dev/null; then
+              echo "Appium is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Appium failed to start"
+          cat appium.log || true
+          exit 1
+
+      - name: Run iOS suite (Cucumber + JUnit specs)
+        run: ./mvnw -B verify -DskipUnitTests=true
+        env:
+          # Prefer prebuilt WDA when the download succeeded
+          APPIUM_WDA_PATH: ${{ env.PREBUILT_WDA_PATH }}
+
+      - name: Upload iOS artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-artifacts
+          path: |
+            target/cucumber-report.html
+            target/failsafe-reports/
+            appium.log
+          if-no-files-found: ignore
+          retention-days: 14

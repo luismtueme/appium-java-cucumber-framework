@@ -1,0 +1,17 @@
+# Local Appium server for Android. Start with:
+#   docker compose up -d appium
+# Then run the suite against it (emulator/device still required on the host or in CI):
+#   APPIUM_SERVER_URL=http://127.0.0.1:4723 PLATFORM=android ./mvnw verify -DskipUnitTests=true
+services:
+  appium:
+    image: appium/appium:v2.12.1-p2
+    container_name: appium-java-framework
+    ports:
+      - "4723:4723"
+    volumes:
+      - ./apps:/apps:ro
+    environment:
+      APPIUM_ALLOW_INSECURE: "chromedriver_autodownload"
+    # Host's Android emulator is reached via host gateway from the container when needed
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

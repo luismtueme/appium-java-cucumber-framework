@@ -1,0 +1,19 @@
+name: Nightly Cross-Platform
+
+# Re-runs the full CI workflow (Checks + Android + iOS) on a schedule.
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Keep in step with <java.version> in pom.xml (ConsistencyTest checks)
+  JAVA_VERSION: '21'
+
+jobs:
+  mobile:
+    name: Nightly
+    uses: ./.github/workflows/ci.yml

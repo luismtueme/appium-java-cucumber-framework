@@ -1,0 +1,27 @@
+# Build output and reports
+target/
+
+# Downloaded demo apps (see scripts/download-apps.sh)
+apps/*
+!apps/.gitkeep
+
+# Environment files (copy .env.example to .env)
+.env
+.env.*
+!.env.example
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+appium.log
