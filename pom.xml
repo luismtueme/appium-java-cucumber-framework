@@ -25,7 +25,7 @@
         <appium.version>9.4.0</appium.version>
         <!-- 4.33 is the last Selenium that still ships ContextAware / LocationContext used by Appium 9.4 -->
         <selenium.version>4.33.0</selenium.version>
-        <cucumber.version>7.22.2</cucumber.version>
+        <cucumber.version>8.0.4</cucumber.version>
         <junit.version>5.13.4</junit.version>
         <rest-assured.version>5.5.5</rest-assured.version>
         <jackson.version>2.19.2</jackson.version>
