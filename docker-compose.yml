@@ -1,7 +1,13 @@
-# Local Appium server for Android. Start with:
+# Optional: Appium 2 server only (not used by CI).
+#
+# Preferred local/CI path: npm install -g appium && appium --address 127.0.0.1 --port 4723
+#
+# If you use this compose file instead:
 #   docker compose up -d appium
-# Then run the suite against it (emulator/device still required on the host or in CI):
+# then still boot an emulator/simulator on the HOST and run Maven on the HOST:
 #   APPIUM_SERVER_URL=http://127.0.0.1:4723 PLATFORM=android ./mvnw verify -DskipUnitTests=true
+#
+# This does not run the Java suite, Android emulator, or iOS Simulator.
 services:
   appium:
     image: appium/appium:v2.19.0-p4
@@ -12,6 +18,6 @@ services:
       - ./apps:/apps:ro
     environment:
       APPIUM_ALLOW_INSECURE: "chromedriver_autodownload"
-    # Host's Android emulator is reached via host gateway from the container when needed
+    # Host Android emulator may be reachable via ADB over host gateway (setup can be fiddly).
     extra_hosts:
       - "host.docker.internal:host-gateway"
