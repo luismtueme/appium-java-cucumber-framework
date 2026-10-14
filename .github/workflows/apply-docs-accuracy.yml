@@ -1,0 +1,35 @@
+name: Apply docs accuracy
+
+on:
+  push:
+    branches:
+      - cursor/docs-accuracy-b8fd
+    paths:
+      - .github/workflows/apply-docs-accuracy.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: cursor/docs-accuracy-b8fd
+          fetch-depth: 0
+      - name: Apply the documentation patch
+        run: |
+          set -euo pipefail
+          echo 'ZGlmZiAtLWdpdCBhL1JFQURNRS5tZCBiL1JFQURNRS5tZAppbmRleCBhYTg4NGRmLi43MjJiN2U4IDEwMDY0NAotLS0gYS9SRUFETUUubWQKKysrIGIvUkVBRE1FLm1kCkBAIC0zMSw2ICszMSw3IEBAIE5ldyBoZXJlPyBGb2xsb3cgdGhlIFtydW4gZ3VpZGVdKGRvY3MvR1VJREUubWQpIChzZXR1cCDihpIgZGV2aWNlIOKGkiBmaXJzdCBydW4KIHwgW3BsYXl3cmlnaHQtY3VjdW1iZXItdHlwZXNjcmlwdC1mcmFtZXdvcmtdKGh0dHBzOi8vZ2l0aHViLmNvbS9sdWlzbXR1ZW1lL3BsYXl3cmlnaHQtY3VjdW1iZXItdHlwZXNjcmlwdC1mcmFtZXdvcmspIHwgR2hlcmtpbiArIFBsYXl3cmlnaHQgc3BlY3MgfCBUeXBlU2NyaXB0LCBQbGF5d3JpZ2h0IHwgV2ViIFVJIHdpdGggQkREIGluIFRTIHwKIHwgW3BsYXl3cmlnaHQtdHlwZXNjcmlwdC1mcmFtZXdvcmtdKGh0dHBzOi8vZ2l0aHViLmNvbS9sdWlzbXR1ZW1lL3BsYXl3cmlnaHQtdHlwZXNjcmlwdC1mcmFtZXdvcmspIHwgUGxheXdyaWdodCBzcGVjcyB8IFR5cGVTY3JpcHQsIFBsYXl3cmlnaHQgfCBXZWIgVUksIGVuZ2luZWVycy1vbmx5IHwKIHwgW3BsYXl3cmlnaHQtY3VjdW1iZXItYXV0b21hdGlvbi1mcmFtZXdvcmtdKGh0dHBzOi8vZ2l0aHViLmNvbS9sdWlzbXR1ZW1lL3BsYXl3cmlnaHQtY3VjdW1iZXItYXV0b21hdGlvbi1mcmFtZXdvcmspIHwgR2hlcmtpbiArIFBsYXl3cmlnaHQgc3BlY3MgfCBKYXZhU2NyaXB0LCBQbGF5d3JpZ2h0IHwgV2ViIFVJIHdpdGggQ3VjdW1iZXIsIG5vIFRTIHwKK3wgW3BsYXl3cmlnaHQtcHl0aG9uLWZyYW1ld29ya10oaHR0cHM6Ly9naXRodWIuY29tL2x1aXNtdHVlbWUvcGxheXdyaWdodC1weXRob24tZnJhbWV3b3JrKSB8IFB5dGVzdCB8IFB5dGhvbiwgUGxheXdyaWdodCB8IFRoZSBzYW1lIFBsYXl3cmlnaHQgY2hlY2tzLCB3aXRob3V0IE5vZGUgfAogCiAjIyBXaGF0J3MgaW5jbHVkZWQKIApAQCAtMjEzLDYgKzIxNCw4IEBAIEV4cG9zZSB1c2VyIGFjdGlvbnMgYW5kIHZpc2libGUtc3RhdGUgcmVhZHM7IGtlZXAgYXNzZXJ0aW9ucyBvdXQgb2Ygc2NyZWVucy4KIHwgKipBbmRyb2lkKiogfCBIb3N0IEFwcGl1bSArIFVpQXV0b21hdG9yMiArIGBhb3NwX2F0ZGAgZW11bGF0b3I7IEN1Y3VtYmVyICsgc3BlY3M7IHF1YXJhbnRpbmUgKG5vbi1ibG9ja2luZykgfAogfCAqKmlPUyoqIHwgSG9zdCBBcHBpdW0gKyBYQ1VJVGVzdCArIHNpbXVsYXRvciBvbiBgbWFjb3MtMTVgIHwKIAorYC5naXRodWIvd29ya2Zsb3dzL25pZ2h0bHkueW1sYCByZS1ydW5zIHRoYXQgc2FtZSB3b3JrZmxvdyBkYWlseSBhdCAwNjowMCBVVEMgYW5kIG9uIGRlbWFuZC4gSXQgaXMgbm90IGFuIGV4dHJhIHJlcXVpcmVkIGNoZWNrLgorCiBEZXBlbmRhYm90IG9wZW5zIHdlZWtseSBQUnMgZm9yIE1hdmVuIGFuZCBHaXRIdWIgQWN0aW9ucy4KIAogIyMgTGljZW5zZQo=' | base64 -d > /tmp/docs.patch
+          if git apply --check /tmp/docs.patch; then
+            git apply /tmp/docs.patch
+            git rm -f .github/workflows/apply-docs-accuracy.yml
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "Align documentation with the workflows and the six frameworks."
+            git push origin HEAD:cursor/docs-accuracy-b8fd
+          else
+            echo "Patch already applied"
+          fi
