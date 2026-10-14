@@ -31,6 +31,7 @@ New here? Follow the [run guide](docs/GUIDE.md) (setup → device → first run 
 | [playwright-cucumber-typescript-framework](https://github.com/luismtueme/playwright-cucumber-typescript-framework) | Gherkin + Playwright specs | TypeScript, Playwright | Web UI with BDD in TS |
 | [playwright-typescript-framework](https://github.com/luismtueme/playwright-typescript-framework) | Playwright specs | TypeScript, Playwright | Web UI, engineers-only |
 | [playwright-cucumber-automation-framework](https://github.com/luismtueme/playwright-cucumber-automation-framework) | Gherkin + Playwright specs | JavaScript, Playwright | Web UI with Cucumber, no TS |
+| [playwright-python-framework](https://github.com/luismtueme/playwright-python-framework) | Pytest | Python, Playwright | The same Playwright checks, without Node |
 
 ## What's included
 
@@ -212,6 +213,8 @@ Expose user actions and visible-state reads; keep assertions out of screens.
 | **Checks** | Compile (`-Werror`), Spotless, unit tests + coverage, ArchUnit, Gherkin lint, consistency, Cucumber dry-run — **no device** |
 | **Android** | Host Appium + UiAutomator2 + `aosp_atd` emulator; Cucumber + specs; quarantine (non-blocking) |
 | **iOS** | Host Appium + XCUITest + simulator on `macos-15` |
+
+`.github/workflows/nightly.yml` re-runs that same workflow daily at 06:00 UTC and on demand. It is not an extra required check.
 
 Dependabot opens weekly PRs for Maven and GitHub Actions.
 
